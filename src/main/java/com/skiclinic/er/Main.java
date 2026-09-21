@@ -39,7 +39,8 @@ public final class Main {
         pool.shutdown();
         pool.awaitTermination(2, TimeUnit.MINUTES);
 
-        report(sharedBays, mainWing, afterHoursWing, assignments.get(), completions.get());
+        System.out.print(ERReport.render(
+                sharedBays, mainWing, afterHoursWing, assignments.get(), completions.get()));
     }
 
     private static void seedPatients(ERService wing, String prefix, Clock clock) {
@@ -59,18 +60,6 @@ public final class Main {
                 }
             }
         }
-    }
-
-    private static void report(TreatmentCapacityPool bays, ERService mainWing, ERService afterHoursWing,
-                                int assignments, int completions) {
-        System.out.println("=== Ski Town ER — shared bay pool load simulation ===");
-        System.out.println("Total bays:            " + bays.totalCapacity());
-        System.out.println("Worker threads:        " + WORKER_THREADS);
-        System.out.println("Assignments completed: " + assignments);
-        System.out.println("Treatments completed:  " + completions);
-        System.out.println("Main wing waiting:     " + mainWing.waitingPatientCount());
-        System.out.println("After-hours waiting:   " + afterHoursWing.waitingPatientCount());
-        System.out.println("Available bays now:    " + bays.availableSlots());
     }
 
     private Main() {
