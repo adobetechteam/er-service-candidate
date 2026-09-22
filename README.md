@@ -66,7 +66,11 @@ This runs both wings under sustained concurrent load against the shared bay
 pool and prints the ER diagram populated with live counts. `[X]` means a bay is
 reported occupied and `[_]` means it is reported available. The report places
 assignments, patients currently in treatment, and completions in flow order so
-you can compare those counts with the shared bay display.
+you can compare those counts with the shared bay display. Assignments and
+completions are shown against the total patient population. Workers stop early
+if every patient is discharged; otherwise the report notes whether execution
+cycles were exhausted or the worker timeout was reached and shows the elapsed
+treatment-run time.
 
 ## Submission
 

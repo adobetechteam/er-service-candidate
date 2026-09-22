@@ -4,6 +4,9 @@ import com.skiclinic.er.model.PatientStatus;
 import com.skiclinic.er.service.ERService;
 import com.skiclinic.er.service.TreatmentCapacityPool;
 
+import java.time.Duration;
+import java.util.Locale;
+
 public final class ERReport {
     private static final int COLUMN_WIDTH = 38;
     private static final String FULL_BORDER =
@@ -15,10 +18,14 @@ public final class ERReport {
                                 ERService mainWing,
                                 ERService afterHoursWing,
                                 int assignments,
-                                int completions) {
+                                int completions,
+                                Duration elapsed,
+                                boolean workersFinished) {
         WingStats main = WingStats.from(mainWing);
         WingStats afterHours = WingStats.from(afterHoursWing);
+        long totalPatients = main.total() + afterHours.total();
         long actualInTreatment = main.inTreatment + afterHours.inTreatment;
+        long actualDischarged = main.discharged + afterHours.discharged;
         int reportedAvailable = bays.availableSlots();
         long expectedAvailable = bays.totalCapacity() - actualInTreatment;
 
@@ -44,11 +51,33 @@ public final class ERReport {
                 + " | Patient states imply available: " + expectedAvailable)).append('\n');
         report.append(FULL_BORDER).append('\n');
         report.append(fullRow("FLOW TOTALS")).append('\n');
-        report.append(fullRow("Assignments: " + assignments
+        report.append(fullRow("Assignments: " + assignments + " / " + totalPatients
                 + " -> In treatment: " + actualInTreatment
-                + " -> Completions: " + completions)).append('\n');
+                + " -> Completions: " + completions + " / " + totalPatients)).append('\n');
+        report.append(FULL_BORDER).append('\n');
+        report.append(fullRow("TREATMENT RUN")).append('\n');
+        report.append(fullRow("Elapsed treatment time: " + formatDuration(elapsed))).append('\n');
+        if (actualDischarged == totalPatients) {
+            report.append(fullRow("Run ended: all " + totalPatients + " patients were discharged."))
+                    .append('\n');
+        } else if (workersFinished) {
+            report.append(fullRow(
+                    "Run ended: execution cycles exhausted; not all patients were discharged."))
+                    .append('\n');
+            report.append(fullRow("Patients not discharged: " + (totalPatients - actualDischarged)))
+                    .append('\n');
+        } else {
+            report.append(fullRow(
+                    "Run ended: worker timeout; not all patients were discharged.")).append('\n');
+            report.append(fullRow("Patients not discharged: " + (totalPatients - actualDischarged)))
+                    .append('\n');
+        }
         report.append(FULL_BORDER).append('\n');
         return report.toString();
+    }
+
+    private static String formatDuration(Duration duration) {
+        return String.format(Locale.ROOT, "%.3f seconds", duration.toNanos() / 1_000_000_000.0);
     }
 
     private static String renderBays(int total, int available) {
@@ -87,6 +116,10 @@ public final class ERReport {
             this.waiting = waiting;
             this.inTreatment = inTreatment;
             this.discharged = discharged;
+        }
+
+        private long total() {
+            return waiting + inTreatment + discharged;
         }
 
         private static WingStats from(ERService wing) {

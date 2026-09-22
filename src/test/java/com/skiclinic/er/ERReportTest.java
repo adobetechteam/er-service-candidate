@@ -6,6 +6,7 @@ import com.skiclinic.er.service.TreatmentCapacityPool;
 import com.skiclinic.er.support.MutableClock;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -22,15 +23,19 @@ class ERReportTest {
         ERService afterHoursWing = new ERService(bays, clock);
         mainWing.admit("M-1", "Main Patient", Severity.MODERATE);
         afterHoursWing.admit("A-1", "After Hours Patient", Severity.MILD);
-        mainWing.assignNextPatient().orElseThrow();
+        String assignedPatientId = mainWing.assignNextPatient().orElseThrow().patient().id();
+        mainWing.completeTreatment(assignedPatientId);
 
-        String report = ERReport.render(bays, mainWing, afterHoursWing, 1, 0);
+        String report = ERReport.render(
+                bays, mainWing, afterHoursWing, 1, 1, Duration.ofMillis(125), true);
 
         assertTrue(report.contains("MAIN WING LOBBY"));
         assertTrue(report.contains("AFTER-HOURS WING LOBBY"));
-        assertTrue(report.contains("Bays: [X][_]"));
+        assertTrue(report.contains("Bays: [_][_]"));
         assertTrue(report.contains(
-                "Assignments: 1 -> In treatment: 1 -> Completions: 0"));
+                "Assignments: 1 / 2 -> In treatment: 0 -> Completions: 1 / 2"));
+        assertTrue(report.contains("Elapsed treatment time: 0.125 seconds"));
+        assertTrue(report.contains("not all patients were discharged"));
     }
 
     @Test
@@ -38,14 +43,37 @@ class ERReportTest {
         TreatmentCapacityPool bays = new TreatmentCapacityPool(1);
         ERService mainWing = new ERService(bays, clock);
         ERService afterHoursWing = new ERService(bays, clock);
+        mainWing.admit("M-1", "Main Patient", Severity.MODERATE);
+        afterHoursWing.admit("A-1", "After Hours Patient", Severity.MILD);
         bays.reserveSlot();
         bays.reserveSlot();
 
-        String report = ERReport.render(bays, mainWing, afterHoursWing, 2, 0);
+        String report = ERReport.render(
+                bays, mainWing, afterHoursWing, 2, 0, Duration.ofSeconds(2), true);
 
         assertTrue(report.contains("INVALID: -1 available of 1"));
         assertTrue(report.contains(
-                "Assignments: 2 -> In treatment: 0 -> Completions: 0"));
+                "Assignments: 2 / 2 -> In treatment: 0 -> Completions: 0 / 2"));
+        assertTrue(report.contains("execution cycles exhausted"));
+        assertTrue(report.contains("Patients not discharged: 2"));
         assertFalse(report.contains("STATUS:"));
+    }
+
+    @Test
+    void reportsWhenEveryPatientWasDischarged() {
+        TreatmentCapacityPool bays = new TreatmentCapacityPool(1);
+        ERService mainWing = new ERService(bays, clock);
+        ERService afterHoursWing = new ERService(bays, clock);
+        String patientId = mainWing.admit(
+                "M-1", "Main Patient", Severity.MODERATE).id();
+        mainWing.assignNextPatient().orElseThrow();
+        mainWing.completeTreatment(patientId);
+
+        String report = ERReport.render(
+                bays, mainWing, afterHoursWing, 1, 1, Duration.ofMillis(750), true);
+
+        assertTrue(report.contains(
+                "Assignments: 1 / 1 -> In treatment: 0 -> Completions: 1 / 1"));
+        assertTrue(report.contains("Run ended: all 1 patients were discharged."));
     }
 }
