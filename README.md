@@ -18,6 +18,31 @@ Treat this as production code: preserve the public API where practical, keep
 the change focused, and provide deterministic evidence for the behavior you
 implement.
 
+## System layout
+
+```text
++============================================================================+
+|                               SKI TOWN ER                                   |
+|                                                                            |
+|  +-----------------------------+      +-----------------------------+       |
+|  |       MAIN WING LOBBY       |      |   AFTER-HOURS WING LOBBY   |       |
+|  |                             |      |                             |       |
+|  |  Local waiting patients     |      |  Local waiting patients     |       |
+|  +--------------+--------------+      +--------------+--------------+       |
+|                 \                                  /                         |
+|                  \                                /                          |
+|                   v                              v                           |
+|              +------------------------------------------------+             |
+|              |          SHARED TREATMENT BAY POOL             |             |
+|              |              [ ] [ ] [ ] [ ] [ ]               |             |
+|              +------------------------------------------------+             |
++============================================================================+
+```
+
+Each wing owns its lobby and patient list. Both wings draw from the same five
+treatment bays. A decision made by one wing can therefore affect whether the
+other wing can begin treatment.
+
 ## Running the tests
 
 Prerequisites: JDK 11+ and Maven 3.9+.
@@ -38,8 +63,13 @@ java -cp target/classes com.skiclinic.er.Main
 ```
 
 This runs both wings under sustained concurrent load against the shared bay
-pool and prints a summary. Numbers that don't reconcile with each other are
-the discrepancy operations has been reporting.
+pool and prints the ER diagram populated with live counts. `[X]` means a bay is
+reported occupied and `[_]` means it is reported available. The report places
+assignments, patients currently in treatment, and completions in flow order so
+you can compare those counts with the shared bay display. Assignments and
+completions are shown against the total patient population. Workers stop early
+if every patient is discharged; otherwise the report notes whether execution
+cycles were exhausted or the worker timeout was reached.
 
 ## Submission
 
