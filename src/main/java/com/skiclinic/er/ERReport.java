@@ -4,9 +4,6 @@ import com.skiclinic.er.model.PatientStatus;
 import com.skiclinic.er.service.ERService;
 import com.skiclinic.er.service.TreatmentCapacityPool;
 
-import java.time.Duration;
-import java.util.Locale;
-
 public final class ERReport {
     private static final int COLUMN_WIDTH = 38;
     private static final String FULL_BORDER =
@@ -19,7 +16,6 @@ public final class ERReport {
                                 ERService afterHoursWing,
                                 int assignments,
                                 int completions,
-                                Duration elapsed,
                                 boolean workersFinished) {
         WingStats main = WingStats.from(mainWing);
         WingStats afterHours = WingStats.from(afterHoursWing);
@@ -41,7 +37,7 @@ public final class ERReport {
         report.append(wingRow("Discharged:   " + main.discharged,
                 "Discharged:   " + afterHours.discharged)).append('\n');
         report.append(WING_BORDER).append('\n');
-        report.append(fullRow("\\             both wings compete for the same bays             /"))
+        report.append(fullRow("\\              both wings share the same bays               /"))
                 .append('\n');
         report.append(FULL_BORDER).append('\n');
         report.append(fullRow("SHARED TREATMENT BAYS")).append('\n');
@@ -55,8 +51,7 @@ public final class ERReport {
                 + " -> In treatment: " + actualInTreatment
                 + " -> Completions: " + completions + " / " + totalPatients)).append('\n');
         report.append(FULL_BORDER).append('\n');
-        report.append(fullRow("TREATMENT RUN")).append('\n');
-        report.append(fullRow("Elapsed treatment time: " + formatDuration(elapsed))).append('\n');
+        report.append(fullRow("RUN COMPLETION")).append('\n');
         if (actualDischarged == totalPatients) {
             report.append(fullRow("Run ended: all " + totalPatients + " patients were discharged."))
                     .append('\n');
@@ -74,10 +69,6 @@ public final class ERReport {
         }
         report.append(FULL_BORDER).append('\n');
         return report.toString();
-    }
-
-    private static String formatDuration(Duration duration) {
-        return String.format(Locale.ROOT, "%.3f seconds", duration.toNanos() / 1_000_000_000.0);
     }
 
     private static String renderBays(int total, int available) {

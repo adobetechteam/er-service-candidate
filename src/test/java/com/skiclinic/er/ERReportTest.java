@@ -6,7 +6,6 @@ import com.skiclinic.er.service.TreatmentCapacityPool;
 import com.skiclinic.er.support.MutableClock;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -27,15 +26,15 @@ class ERReportTest {
         mainWing.completeTreatment(assignedPatientId);
 
         String report = ERReport.render(
-                bays, mainWing, afterHoursWing, 1, 1, Duration.ofMillis(125), true);
+                bays, mainWing, afterHoursWing, 1, 1, true);
 
         assertTrue(report.contains("MAIN WING LOBBY"));
         assertTrue(report.contains("AFTER-HOURS WING LOBBY"));
         assertTrue(report.contains("Bays: [_][_]"));
         assertTrue(report.contains(
                 "Assignments: 1 / 2 -> In treatment: 0 -> Completions: 1 / 2"));
-        assertTrue(report.contains("Elapsed treatment time: 0.125 seconds"));
         assertTrue(report.contains("not all patients were discharged"));
+        assertTrue(report.contains("both wings share the same bays"));
     }
 
     @Test
@@ -49,7 +48,7 @@ class ERReportTest {
         bays.reserveSlot();
 
         String report = ERReport.render(
-                bays, mainWing, afterHoursWing, 2, 0, Duration.ofSeconds(2), true);
+                bays, mainWing, afterHoursWing, 2, 0, true);
 
         assertTrue(report.contains("INVALID: -1 available of 1"));
         assertTrue(report.contains(
@@ -70,7 +69,7 @@ class ERReportTest {
         mainWing.completeTreatment(patientId);
 
         String report = ERReport.render(
-                bays, mainWing, afterHoursWing, 1, 1, Duration.ofMillis(750), true);
+                bays, mainWing, afterHoursWing, 1, 1, true);
 
         assertTrue(report.contains(
                 "Assignments: 1 / 1 -> In treatment: 0 -> Completions: 1 / 1"));

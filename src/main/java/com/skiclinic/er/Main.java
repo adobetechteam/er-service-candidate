@@ -6,7 +6,6 @@ import com.skiclinic.er.service.TreatmentAssignment;
 import com.skiclinic.er.service.TreatmentCapacityPool;
 
 import java.time.Clock;
-import java.time.Duration;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -37,7 +36,6 @@ public final class Main {
         Set<String> dischargedPatientIds = ConcurrentHashMap.newKeySet();
         AtomicBoolean allPatientsDischarged = new AtomicBoolean();
 
-        long treatmentStartedAt = System.nanoTime();
         ExecutorService pool = Executors.newFixedThreadPool(WORKER_THREADS);
         for (int i = 0; i < WORKER_THREADS; i++) {
             ERService wing = (i % 2 == 0) ? mainWing : afterHoursWing;
@@ -54,7 +52,6 @@ public final class Main {
         if (!workersFinished) {
             pool.shutdownNow();
         }
-        Duration elapsed = Duration.ofNanos(System.nanoTime() - treatmentStartedAt);
 
         System.out.print(ERReport.render(
                 sharedBays,
@@ -62,7 +59,6 @@ public final class Main {
                 afterHoursWing,
                 assignments.get(),
                 completions.get(),
-                elapsed,
                 workersFinished));
     }
 
