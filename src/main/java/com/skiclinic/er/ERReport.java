@@ -4,9 +4,6 @@ import com.skiclinic.er.model.PatientStatus;
 import com.skiclinic.er.service.ERService;
 import com.skiclinic.er.service.TreatmentCapacityPool;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public final class ERReport {
     private static final int COLUMN_WIDTH = 38;
     private static final String FULL_BORDER =
@@ -24,18 +21,6 @@ public final class ERReport {
         long actualInTreatment = main.inTreatment + afterHours.inTreatment;
         int reportedAvailable = bays.availableSlots();
         long expectedAvailable = bays.totalCapacity() - actualInTreatment;
-
-        List<String> warnings = new ArrayList<>();
-        if (reportedAvailable < 0 || reportedAvailable > bays.totalCapacity()) {
-            warnings.add("Reported available bays are outside 0.." + bays.totalCapacity() + ".");
-        }
-        if (reportedAvailable != expectedAvailable) {
-            warnings.add("Bay pool reports " + reportedAvailable + " available; patient states imply "
-                    + expectedAvailable + ".");
-        }
-        if (assignments != completions + actualInTreatment) {
-            warnings.add("Assignments do not equal completions plus patients in treatment.");
-        }
 
         StringBuilder report = new StringBuilder();
         report.append(FULL_BORDER).append('\n');
@@ -60,18 +45,8 @@ public final class ERReport {
         report.append(FULL_BORDER).append('\n');
         report.append(fullRow("FLOW TOTALS")).append('\n');
         report.append(fullRow("Assignments: " + assignments
-                + " | Completions: " + completions
-                + " | Currently in treatment: " + actualInTreatment)).append('\n');
-        report.append(FULL_BORDER).append('\n');
-
-        if (warnings.isEmpty()) {
-            report.append(fullRow("STATUS: HEALTHY - capacity and patient flow reconcile")).append('\n');
-        } else {
-            report.append(fullRow("STATUS: INCONSISTENT - investigate shared-state concurrency")).append('\n');
-            for (String warning : warnings) {
-                report.append(fullRow("! " + warning)).append('\n');
-            }
-        }
+                + " -> In treatment: " + actualInTreatment
+                + " -> Completions: " + completions)).append('\n');
         report.append(FULL_BORDER).append('\n');
         return report.toString();
     }

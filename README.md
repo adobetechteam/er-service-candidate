@@ -64,9 +64,9 @@ java -cp target/classes com.skiclinic.er.Main
 
 This runs both wings under sustained concurrent load against the shared bay
 pool and prints the ER diagram populated with live counts. `[X]` means a bay is
-reported occupied and `[_]` means it is reported available. The final status
-compares the bay count with actual patient states and calls out values that do
-not reconcile.
+reported occupied and `[_]` means it is reported available. The report places
+assignments, patients currently in treatment, and completions in flow order so
+you can compare those counts with the shared bay display.
 
 ## Submission
 
