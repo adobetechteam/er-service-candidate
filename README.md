@@ -3,7 +3,9 @@
 Ski Town Health Clinic is opening a second, smaller after-hours wing. Each
 wing triages and treats its own patients, but the two wings share one fixed
 pool of treatment bays, and patient identity is hospital-wide: the same
-patient ID must mean the same person no matter which wing admitted them.
+patient ID must mean the same person no matter which wing admitted them. 
+
+You may use AI tools. Implement fixes for the following reported issues. 
 
 Since the after-hours wing opened, operations has reported:
 
